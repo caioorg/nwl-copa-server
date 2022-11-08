@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Poll {
+  id    String @id @default(cuid())
+  title String
+  code  String @unique
+  createAt DateTime @default(now())
+  ownerId String?
+
+  // Relations
+  participants Participant[]
+  owner User? @relation(fields: [ownerId], references: [id])
+}
+
+model Participant {
+  id    String @id @default(cuid())
+  userId String
+  pollId String
+
+  // Relations
+  guesses Guess[]
+  user User @relation(fields: [userId], references: [id])
+  poll Poll @relation(fields: [pollId], references: [id])
+
+  @@unique([userId, pollId])
+}
+
+model User {
+  id                String @id @default(cuid())
+  name              String
+  email             String @unique
+  avatarUrl         String? // Possible null
+  createAt          DateTime @default(now())
+  googleId          String? @unique
+
+  // Relations
+  participatingAt   Participant[]
+  ownPolls          Poll[]
+}
+
+model Game {
+  id                      String @id @default(cuid())
+  date                    DateTime
+  firstTeamCountryCode    String
+  secondTeamCountryCode   String
+
+  // Relations
+  guesses                 Guess[]
+}
+
+model Guess {
+  id                String @id @default(cuid())
+  firstTeamPoints   Int
+  secondTeamPoints  Int
+  createAt          DateTime @default(now())
+  gameId String
+  participantId String
+
+  // Relations
+  game Game @relation(fields: [gameId], references: [id])
+  participant Participant @relation(fields: [participantId], references: [id])
+
+
+  @@unique([participantId, gameId])
+}
