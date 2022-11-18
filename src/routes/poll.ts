@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from '../plugins/authenticate';
 
 export async function polls(fastify: FastifyInstance) {
-  
+
   // returns the number of polls created
   fastify.get('/polls/count', async () => {
     const count = await prisma.poll.count()
@@ -18,7 +18,7 @@ export async function polls(fastify: FastifyInstance) {
     const createPollBody = z.object({
       title: z.string(),
     })
-  
+
     const { title } = createPollBody.parse(request.body)
 
     const generateCode = new ShortUniqueId({ length: 6 })
@@ -26,9 +26,9 @@ export async function polls(fastify: FastifyInstance) {
 
     try {
       await request.jwtVerify()
-      
+
       await prisma.poll.create({
-        data: { 
+        data: {
           title,
           code,
           ownerId: request.user.sub,
@@ -39,12 +39,12 @@ export async function polls(fastify: FastifyInstance) {
           }
         }
       })
-    } catch { 
+    } catch {
       // if there is no authenticated user, we create the poll through the execution
       await prisma.poll.create({ data: { title, code } })
     }
 
-    
+
     return reply.status(201).send({ code })
   })
 
@@ -58,7 +58,7 @@ export async function polls(fastify: FastifyInstance) {
 
     // search for the poll and check if the user who is searching is already in that poll.
     const poll = await prisma.poll.findUnique({
-      where: { code }, 
+      where: { code },
       include: {
         participants: {
           where: {
@@ -121,7 +121,7 @@ export async function polls(fastify: FastifyInstance) {
 
     const { id } = getPollParams.parse(request.params)
 
-    const polls = await prisma.poll.findUnique({
+    const poll = await prisma.poll.findUnique({
       where: { id },
       include: {
         participants: { select: { id: true, user: { select: { avatarUrl: true } } }, take: 4 },
@@ -130,6 +130,6 @@ export async function polls(fastify: FastifyInstance) {
       }
     })
 
-    return { polls }
+    return { poll }
   })
 }

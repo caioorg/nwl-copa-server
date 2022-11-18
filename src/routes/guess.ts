@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from '../plugins/authenticate';
 
 export async function guesses(fastify: FastifyInstance) {
-  
+
   fastify.get('/guesses/count', async () => {
     const count = await prisma.guess.count()
 
@@ -23,7 +23,9 @@ export async function guesses(fastify: FastifyInstance) {
     })
 
     const { pollId, gameId } = createGuessParams.parse(request.params)
+
     const { firstTeamPoints, secondTeamPoints } = createGuessBody.parse(request.body)
+
 
     const participant = await prisma.participant.findUnique({
       where: {
